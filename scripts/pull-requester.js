@@ -46,7 +46,6 @@ const parseGithubResponse = (pullRequests) => {
       }
     }
 
-
     output.push({
       link: pull.node.permalink,
       author: pull.node.author.login,
@@ -55,9 +54,6 @@ const parseGithubResponse = (pullRequests) => {
       state
     })
   })
-
-  // console.log('S: ', JSON.stringify(output, null, 2))
-
   return output
 }
 
@@ -68,6 +64,24 @@ const client = new graphql.GraphQLClient(URL, {
   }
 })
 
+
+const userMap = {
+  Spencerhutch: '@spencer',
+  bollain: '@bollain',
+  brjmc: '@Brendan',
+  variousauthors: '@andre'
+}
+const gitNamesToSlackNames = (users) => {
+  let output = ''
+  for(var ix = 0 ; ix < users.length - 1; ix++) {
+    current = users[ix]
+    output += `${userMap[current]} || `
+  }
+
+  output += userMap[users[users.length-1]]
+
+  return output
+}
 
 module.exports = (robot) => {
   robot.respond(/pull request status/i, async (res) => {
@@ -101,13 +115,13 @@ module.exports = (robot) => {
       const eyes = []
       parsedOutput.forEach((o) => {
         if(o.state === 'ACCEPTED') {
-          approved.push(`\n- ${o.link} ${o.author} `)
+          approved.push(`\n- ${o.link} ${gitNamesToSlackNames([o.author])}`)
         }
         if(o.state === 'NEEDS_EYES') {
           const usersApproved = o.accepts.map((a) => a.author)
           const usersRejected = o.changeRequests.map((a) => a.author)
           const usersNeeded = BEERPOD_AUTHORS.filter(x => (x !== o.author) && !usersApproved.includes(x) && !usersRejected.includes(x))
-          eyes.push(`\n- ${o.link} ${usersNeeded}`)
+          eyes.push(`\n- ${o.link} ${gitNamesToSlackNames(usersNeeded)}`)
         }
       })
 
