@@ -5,8 +5,12 @@
   "author": "Spencer Hutchinson <spencerhutch@gmail.com>",
   "description": "A simple helpful robot for your Company",
   "dependencies": {
+    "bluebird": "^3.5.3",
+    "dotenv": "^6.1.0",
+    "graphql-request": "^1.8.2",
     "hubot": "^3.1.1",
     "hubot-diagnostics": "^1.0.0",
+    "hubot-env": "0.0.2",
     "hubot-google-images": "^0.2.7",
     "hubot-google-translate": "^0.2.1",
     "hubot-help": "^1.0.1",
