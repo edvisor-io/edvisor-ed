@@ -70,107 +70,7 @@ const client = new graphql.GraphQLClient(URL, {
 
 
 module.exports = (robot) => {
-  robot.hear(/database/i, (res) => {
-    client.request(pullQueries.database).then(data => {
-
-      const pullRequests = data.repository.pullRequests.edges
-
-      const webClientOutput = parseGithubResponse(pullRequests)
-
-      console.log('pullRequests: ', pullRequests)
-
-      const approved = []
-      const eyes = []
-
-      webClientOutput.forEach((o) => {
-        if(o.state === 'ACCEPTED') {
-          approved.push(`\n- ${o.link} ${o.author} `)
-        }
-        if(o.state === 'NEEDS_EYES') {
-          eyes.push(`\n- ${o.link} ${BEERPOD_AUTHORS.filter(x => x !== o.author)}`)
-        }
-      })
-
-
-      res.send(`*Approved: *${approved}\n*Eyes: * ${eyes}`)
-    })
-  })
-
-  robot.hear(/web/i, (res) => {
-    client.request(pullQueries.webClient).then(data => {
-
-      const pullRequests = data.repository.pullRequests.edges
-
-      const webClientOutput = parseGithubResponse(pullRequests)
-
-
-      const approved = []
-      const eyes = []
-
-      webClientOutput.forEach((o) => {
-        if(o.state === 'ACCEPTED') {
-          approved.push(`\n- ${o.link} ${o.author} `)
-        }
-        if(o.state === 'NEEDS_EYES') {
-          eyes.push(`\n- ${o.link} ${BEERPOD_AUTHORS.filter(x => x !== o.author)}`)
-        }
-      })
-
-
-      res.send(`*Approved: *${approved}\n*Eyes: * ${eyes}`)
-    })
-  })
-
-  robot.hear(/v2/i, (res) => {
-    client.request(pullQueries.apiServerV2).then(data => {
-
-      const pullRequests = data.repository.pullRequests.edges
-
-      const webClientOutput = parseGithubResponse(pullRequests)
-
-      const approved = []
-      const eyes = []
-
-      webClientOutput.forEach((o) => {
-        if(o.state === 'ACCEPTED') {
-          approved.push(`\n- ${o.link} ${o.author} `)
-        }
-        if(o.state === 'NEEDS_EYES') {
-          eyes.push(`\n- ${o.link} ${BEERPOD_AUTHORS.filter(x => x !== o.author)}`)
-        }
-      })
-
-
-      res.send(`*Approved: *${approved}\n*Eyes: * ${eyes}`)
-    })
-  })
-
-  robot.hear(/api-server/i, (res) => {
-    client.request(pullQueries.apiServer).then(data => {
-
-      const pullRequests = data.repository.pullRequests.edges
-
-      const webClientOutput = parseGithubResponse(pullRequests)
-
-      const approved = []
-      const eyes = []
-
-      webClientOutput.forEach((o) => {
-        if(o.state === 'ACCEPTED') {
-          approved.push(`\n- ${o.link} ${o.author}`)
-        }
-        if(o.state === 'NEEDS_EYES') {
-          eyes.push(`\n- ${o.link} ${BEERPOD_AUTHORS.filter(x => x !== o.author)}`)
-        }
-      })
-
-
-      res.send(`*Approved: *${approved}\n*Eyes: * ${eyes}`)
-    })
-  })
-
-
-  robot.respond(/all/i, async (res) => {
+  robot.respond(/pull request status/i, async (res) => {
     const [
       database,
       webClient,
@@ -199,17 +99,18 @@ module.exports = (robot) => {
     const parsedOutput = parseGithubResponse(allPulls)
       const approved = []
       const eyes = []
-
       parsedOutput.forEach((o) => {
         if(o.state === 'ACCEPTED') {
           approved.push(`\n- ${o.link} ${o.author} `)
         }
         if(o.state === 'NEEDS_EYES') {
-          eyes.push(`\n- ${o.link} ${BEERPOD_AUTHORS.filter(x => x !== o.author)}`)
+          const usersApproved = o.accepts.map((a) => a.author)
+          const usersRejected = o.changeRequests.map((a) => a.author)
+          const usersNeeded = BEERPOD_AUTHORS.filter(x => (x !== o.author) && !usersApproved.includes(x) && !usersRejected.includes(x))
+          eyes.push(`\n- ${o.link} ${usersNeeded}`)
         }
       })
 
-
-      res.send(`*Approved: *${approved}\n*Eyes: * ${eyes}`)
+      res.send(`*Approved: *${approved}\n*Eyes Needed: * ${eyes}`)
   })
 }
