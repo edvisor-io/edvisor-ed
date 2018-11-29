@@ -16,9 +16,10 @@
     "hubot-redis-brain": "^1.0.0",
     "hubot-rules": "^1.0.0",
     "hubot-scripts": "^2.17.2",
-    "hubot-shipit": "^0.2.1"
+    "hubot-shipit": "^0.2.1",
+    "hubot-slack": "^4.5.5"
   },
   "engines": {
-    "node": "8.9.3"
+    "node": "8.9.x"
   }
 }
