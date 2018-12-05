@@ -91,7 +91,7 @@ const recycleReactionMatcher = (i) => {
 
 const isPRClosed = async (url) => {
   const result = await client.request(pullQueries.isPrStillOpen(url))
-  return true//(result.resource && result.resource.closed)
+  return (result.resource && result.resource.closed)
 }
 
 
