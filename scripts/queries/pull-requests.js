@@ -18,6 +18,16 @@ const returnObject = `
 `
 
 module.exports = {
+  isPrStillOpen: (url) => `
+    {
+      resource(url:"${url}"){
+        ... on PullRequest {
+          closed
+        }
+      }
+    }
+  `,
+
   webClient: `
     {
       repository(owner: "edvisor-io",name:"web-client") {
