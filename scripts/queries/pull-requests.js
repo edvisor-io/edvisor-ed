@@ -28,6 +28,39 @@ module.exports = {
     }
   `,
 
+  prInfoByurl: (url) => `
+    {
+      resource(url:"${url}"){
+        ... on PullRequest {
+          author {
+            login
+          }
+          closed
+          reviews(first:20) {
+            edges {
+              node {
+                state
+                submittedAt
+                author {
+                  login
+                }
+              }
+            }
+          }
+          commits(last:1) {
+            edges {
+              node {
+                commit{
+                  committedDate
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `,
+
   webClient: `
     {
       repository(owner: "edvisor-io",name:"web-client") {

@@ -85,7 +85,7 @@ const gitNamesToSlackNames = (users) => {
 
 const recycleReactionMatcher = (i) => {
   const isRecycle = (i.reaction === 'recycle')
-  const isEd = (i.item_user.real_name.toLowerCase() == 'ed')
+  const isEd = (i.item_user && i.item_user.real_name.toLowerCase() == 'ed')
   return (isRecycle && isEd)
 }
 
@@ -94,6 +94,139 @@ const isPRClosed = async (url) => {
   return (result.resource && result.resource.closed)
 }
 
+const prStructByUrL = async (url) => {
+  const result = await client.request(pullQueries.prInfoByurl(url))
+  const pullRequest = result.resource
+
+  const approvals = []
+  const changeRequests = []
+
+  const commits = pullRequest.commits.edges
+  const lastCommit = commits[0].node.commit
+
+  pullRequest.reviews.edges.forEach((node) => {
+    const review = node.node
+    switch(review.state) {
+      case 'APPROVED':
+        approvals.push({
+          author: review.author.login,
+          timestamp: review.submittedAt
+        })
+        break;
+      case 'CHANGES_REQUESTED':
+        changeRequests.push({
+          author: review.author.login,
+          timestamp: review.submittedAt,
+        })
+        break
+    }
+  })
+
+  return {
+    link: url,
+    author: pullRequest.author.login,
+    isOpen: !pullRequest.closed,
+    approvals,
+    changeRequests,
+    lastCommitTimestamp: lastCommit.committedDate
+  }
+}
+
+
+const PR_STRUCTURE = [{
+  isOpen: true,
+  link: 'https://github.com/edvisor-io/web-client/pull/1128',
+  author: 'spencer',
+  changesRequested: [{
+    author: 'joe',
+    timestamp: '2018-12-01'
+  }],
+  approvals: [{
+    author: 'doe',
+    timestamp: '2018-12-02'
+  }],
+  noCommentFrom: ['jane', 'zoey'],
+  lastCommitTimestamp: '2018-12-02'
+}]
+
+class edvisorPuller {
+  constructor() {
+    this.pullRequests = []
+  }
+
+  async buildFromString(text) {
+    const lines = text.split('\n')
+    return Bluebird.each(lines, async (line) => {
+      const urlMatches = line.match(/(https?:\/\/[^\s]+(\d))/)
+      if (urlMatches) {
+        const link = urlMatches[0]
+        const pullRequest = {}
+        pullRequest.link = urlMatches[0]
+
+        this.pullRequests.push(await prStructByUrL(link))
+      }
+    })
+  }
+
+  spy() {
+    console.log('Struct: ', JSON.stringify(this.pullRequests, null, 2))
+  }
+
+  toString() {
+    let approval = ''
+    let eyes = ''
+    let changeRequestOutput = ''
+    this.pullRequests.forEach((pullRequest) => {
+      const commentsSeenfrom = []
+
+      pullRequest.changeRequests.forEach((changeRequest) => {
+        commentsSeenfrom.push(changeRequest.author)
+      })
+      pullRequest.approvals.forEach((approval) => {
+        commentsSeenfrom.push(approval.author)
+      })
+
+      const filteredChangesRequested = pullRequest.changeRequests.filter((changeRequest) => {
+        const previousApprovals = pullRequest.approvals.filter((item) => (item.author === changeRequest.author && item.timestamp > changeRequest.timestamp))
+        if(previousApprovals.length > 0) {
+          return false
+        }
+        return true
+      })
+
+      if (filteredChangesRequested.length > 0) {
+        changeRequestOutput += `- ${pullRequest.link} ${pullRequest.author}\n`
+        return
+      }
+
+      if (pullRequest.approvals.length >= 2) {
+        const isOpen = pullRequest.isOpen
+        approval += `${(isOpen ? '' : '~')}- ${pullRequest.link} ${pullRequest.author}${(isOpen ? '' : '~')}\n`
+      }
+
+      if (pullRequest.approvals.length < 2) {
+        const usersNeeded = BEERPOD_AUTHORS.filter(x => (x !== pullRequest.author) && !commentsSeenfrom.includes(x))
+        eyes += `- ${pullRequest.link} ${usersNeeded}\n`
+      }
+    })
+
+    let outputString = ''
+
+    if (approval !== '') {
+      outputString += `*Approved: *\n${approval}`
+    }
+
+    if (eyes !== '') {
+      outputString += `*Eyes Needed: *\n${eyes}`
+    }
+
+    if (changeRequestOutput !== '') {
+      outputString += `*Change Requests: *\n${changeRequestOutput}`
+    }
+
+    return outputString
+  }
+}
 
 module.exports = (robot) => {
   robot.respond(/pull request status/i, async (res) => {
@@ -161,46 +294,17 @@ module.exports = (robot) => {
         count: 1,
         inclusive: true,
         latest: ts
-      }).then((i) => {
+      }).then(async (i) => {
         if (i && i.messages[0]) {
           const message = i.messages[0]
-          const lines = message.text.split('\n')
-          let status = null
-          const approved = []
-          const eyes = []
-          // lines.forEach((line) => {
-          Bluebird.each(lines, async (line) => {
-            // console.log('LINE: ', line)
-            const urlMatches = line.match(/(https?:\/\/[^\s]+(\d))/)
-            if (urlMatches) {
-              if (status === STATUSES.APPROVED) {
-                // console.log(`Is ${urlMatches[0]} still open?`)
-                const isClosed = await isPRClosed(urlMatches[0])
-                if (isClosed && (line[0] != '~')) {
-                  approved.push(`\n~${line}~`)
-                } else {
-                  approved.push(`\n${line}`)
-                }
-              }
-              if (status === STATUSES.PENDING) {
-                // console.log(`Has anyone new reviewd ${urlMatches[0]}?`)
-                eyes.push(`\n${line}`)
-              }
-            } else {
-              if (line.includes('Approved')) {
-                status = STATUSES.APPROVED
-              } else if (line.includes('Eyes Needed')) {
-                status = STATUSES.PENDING
-              }
-            }
-          })
-          .then(() => {
-            robot.adapter.client.web.chat.update(ts, channelId, `*Approved: *${approved}\n*Eyes Needed: * ${eyes}`)
-          })
+
+          const c = new edvisorPuller()
+          await c.buildFromString(message.text)
+          // c.spy()
+          // console.log(c.toString())
+          robot.adapter.client.web.chat.update(ts, channelId, c.toString())
         }
       })
     }
-
-    //
   })
 }
