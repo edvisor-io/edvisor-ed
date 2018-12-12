@@ -16,55 +16,6 @@ const EDVISOR_AUTHORS = [
   'austin-sa-wang'
 ]
 
-
-const parseGithubResponse = (pullRequests) => {
-  const output = []
-  pullRequests.forEach((pull) => {
-    if (!EDVISOR_AUTHORS.includes(pull.node.author.login)){
-      return
-    }
-    const accepts = []
-    const changeRequests = []
-    pull.node.reviews.nodes.forEach((review) => {
-      if(review.state === 'APPROVED') {
-        accepts.push({
-          author: review.author.login,
-          createdAt: review.createdAt
-        })
-      } else if (review.state === 'CHANGES_REQUESTED') {
-        changeRequests.push({
-          createdAt: review.createdAt,
-          author: review.author.login
-        })
-      }
-    })
-
-
-    let state = null
-    if (accepts.length < 2) {
-      state = 'NEEDS_EYES'
-    } else {
-      const accepters = accepts.map(a => a.author)
-      const changeRequesters = changeRequests.map(a => a.author)
-      const diff = changeRequesters.filter(x => !accepters.includes(x))
-      if (diff.length > 0) {
-        state = 'CHANGES_REQUESTED'
-      } else {
-        state = 'ACCEPTED'
-      }
-    }
-
-    output.push({
-      link: pull.node.permalink,
-      author: pull.node.author.login,
-      accepts,
-      changeRequests,
-      state
-    })
-  })
-  return output
-}
-
 const client = new graphql.GraphQLClient(URL, {
   headers: {
     'Content-Type': 'application/json',
@@ -82,6 +33,17 @@ const userMap = {
   hotaru355: '@kenta',
   'austin-sa-wang': '@austin'
 }
+
+const SLACK_TO_GITHUB = {
+  spencer: 'Spencerhutch',
+  armando: 'bollain',
+  brendan: 'brjmc',
+  andre: 'variousauthors',
+  john: 'stringbeans',
+  kenta: 'hotaru355',
+  austin: 'austin-sa-wang',
+}
+
 const gitNamesToSlackNames = (users) => {
   let output = ''
   for(var ix = 0 ; ix < users.length - 1; ix++) {
@@ -299,7 +261,20 @@ class edvisorPuller {
   }
 }
 
+
+
 module.exports = (robot) => {
+  const brainUsers = robot.brain.data.users
+  const userIds = Object.keys(brainUsers)
+  const developers = Object.keys(SLACK_TO_GITHUB)
+  userIds.forEach((userId) => {
+    const user = brainUsers[userId]
+    if (developers.includes(user.name)) {
+      const githubUserName = SLACK_TO_GITHUB[user.name]
+      userMap[githubUserName] = `<@${user.id}>`
+    }
+  })
+
   robot.respond(/prs|(pull request status)/i, async (res) => {
     const channelId = res.envelope.room
     const PullRequests = new edvisorPuller()
@@ -328,7 +303,9 @@ module.exports = (robot) => {
 
           const c = new edvisorPuller()
           await c.buildFromAttachments(message.attachments)
-          robot.adapter.client.web.chat.update(ts, channelId, '*Pull Requests: *', c.toString())
+
+          // console.log('TO ', JSON.stringify(c.toString(), null, 2))
+          robot.adapter.client.web.chat.update(ts, channelId, '*Pull Requests: *', {as_user: true, attachments: c.toString()})
         }
       })
     }
