@@ -1,18 +1,18 @@
 const returnObject = `
   edges {
-    cursor
+    #cursor
     node {
-      id
-      title
+      #id
+      #title
       permalink
-      author {login}
-      reviews(first:10){
-        nodes{
-          author{login}
-          state
-          createdAt
-        }
-      }
+      #author {login}
+      #reviews(first:10){
+      #  nodes{
+      #    author{login}
+      #    state
+      #    createdAt
+      #  }
+      #}
     }
   }
 `
@@ -32,6 +32,10 @@ module.exports = {
     {
       resource(url:"${url}"){
         ... on PullRequest {
+          number
+          repository {
+            name
+          }
           author {
             login
           }
