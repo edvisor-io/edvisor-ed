@@ -6,6 +6,8 @@ dotenv.load()
 
 const URL = 'https://api.github.com/graphql'
 
+const HIDDEN_LABEL = 'Not ready for review'
+
 const EDVISOR_AUTHORS = [
   'bollain',
   'brjmc',
@@ -22,7 +24,6 @@ const client = new graphql.GraphQLClient(URL, {
     Authorization: `bearer ${process.env.HUBOT_GITHUB_TOKEN}`
   }
 })
-
 
 const userMap = {
   Spencerhutch: '@spencer',
@@ -66,6 +67,12 @@ const prStructByUrL = async (url) => {
   const result = await client.request(pullQueries.prInfoByurl(url))
   const pullRequest = result.resource
 
+  let labels = []
+  if (pullRequest.labels.edges.length) {
+    labels = labels.concat(pullRequest.labels.edges.map((e) => e.node.name))
+  }
+
+
   const approvals = []
   const changeRequests = []
 
@@ -93,6 +100,7 @@ const prStructByUrL = async (url) => {
 
   return {
     link: url,
+    labels,
     repo: pullRequest.repository.name,
     prNumber: pullRequest.number,
     author: pullRequest.author.login,
@@ -103,6 +111,18 @@ const prStructByUrL = async (url) => {
   }
 }
 
+const populateSlacktoGithubUserMap = (robot) => {
+  const brainUsers = robot.brain.data.users
+  const userIds = Object.keys(brainUsers)
+  const developers = Object.keys(SLACK_TO_GITHUB)
+  userIds.forEach((userId) => {
+    const user = brainUsers[userId]
+    if (developers.includes(user.name)) {
+      const githubUserName = SLACK_TO_GITHUB[user.name]
+      userMap[githubUserName] = `<@${user.id}>`
+    }
+  })
+}
 
 const PR_STRUCTURE = [{
   isOpen: true,
@@ -197,6 +217,11 @@ class edvisorPuller {
     let eyes = ''
     let changeRequestOutput = ''
     this.pullRequests.forEach((pullRequest) => {
+
+      if(pullRequest.labels.includes(HIDDEN_LABEL)) {
+        return
+      }
+
       const commentsSeenfrom = []
 
       pullRequest.changeRequests.forEach((changeRequest) => {
@@ -262,18 +287,8 @@ class edvisorPuller {
 }
 
 
-
 module.exports = (robot) => {
-  const brainUsers = robot.brain.data.users
-  const userIds = Object.keys(brainUsers)
-  const developers = Object.keys(SLACK_TO_GITHUB)
-  userIds.forEach((userId) => {
-    const user = brainUsers[userId]
-    if (developers.includes(user.name)) {
-      const githubUserName = SLACK_TO_GITHUB[user.name]
-      userMap[githubUserName] = `<@${user.id}>`
-    }
-  })
+  populateSlacktoGithubUserMap(robot)
 
   robot.respond(/prs|(pull request status)/i, async (res) => {
     const channelId = res.envelope.room

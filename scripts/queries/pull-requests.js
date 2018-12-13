@@ -40,6 +40,13 @@ module.exports = {
             login
           }
           closed
+          labels(first:10){
+            edges {
+              node {
+                name
+              }
+            }
+          }
           reviews(first:20) {
             edges {
               node {
