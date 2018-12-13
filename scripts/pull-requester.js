@@ -228,7 +228,7 @@ class edvisorPuller {
       }
 
       if (pullRequest.approvals.length < 2) {
-        const usersNeeded = EDVISOR_AUTHORS.filter(x => (x !== pullRequest.author) && !commentsSeenfrom.includes(x))
+        const usersNeeded = EDVISOR_AUTHORS.filter(x => (x !== pullRequest.author) && !commentsSeenfrom.includes(x) && (x !== 'stringbeans'))
         eyes += `${prLink} ${gitNamesToSlackNames(usersNeeded)}\n`
       }
     })
