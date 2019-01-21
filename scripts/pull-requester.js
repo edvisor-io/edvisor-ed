@@ -149,34 +149,21 @@ class edvisorPuller {
   }
 
   async buildFromNothing() {
-    const [
-      database,
-      webClient,
-      apiServer,
-      apiServerV2,
-      b2c,
-      reactWebClient
-    ] = await Bluebird.all([
-      client.request(pullQueries.database),
-      client.request(pullQueries.webClient),
-      client.request(pullQueries.apiServer),
-      client.request(pullQueries.apiServerV2),
-      client.request(pullQueries.b2c),
-      client.request(pullQueries.reactWebClient),
-    ])
+    const org = await client.request(pullQueries.edvisorRepositories)
+    const allRepos = org.organization.repositories.edges
 
-    const allPulls = [].concat(
-      database.repository.pullRequests.edges,
-      webClient.repository.pullRequests.edges,
-      apiServer.repository.pullRequests.edges,
-      apiServerV2.repository.pullRequests.edges,
-      b2c.repository.pullRequests.edges,
-      reactWebClient.repository.pullRequests.edges,
-    )
+    const allPrs = allRepos.reduce((memo, current) => {
+      const pullRequests = current.node.pullRequests.edges
+      if (pullRequests.length > 0) {
+        pullRequests.forEach((pullRequest) => {
+          const link = pullRequest.node.permalink
+          return memo.push(link)
+        })
+      }
+      return memo
+    }, [])
 
-    const prLinks = allPulls.map((pr) => pr.node.permalink)
-
-    return Bluebird.each(prLinks, async (link) => this.pullRequests.push(await prStructByUrL(link)))
+    return Bluebird.each(allPrs, async (link) => this.pullRequests.push(await prStructByUrL(link)))
   }
 
   async buildFromString(text) {
@@ -319,7 +306,6 @@ module.exports = (robot) => {
           const c = new edvisorPuller()
           await c.buildFromAttachments(message.attachments)
 
-          // console.log('TO ', JSON.stringify(c.toString(), null, 2))
           robot.adapter.client.web.chat.update(ts, channelId, '*Pull Requests: *', {as_user: true, attachments: c.toString()})
         }
       })
