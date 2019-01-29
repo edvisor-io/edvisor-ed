@@ -6,7 +6,11 @@ dotenv.load()
 
 const URL = 'https://api.github.com/graphql'
 
-const HIDDEN_LABEL = 'Not ready for review'
+const LABELS = {
+  NOT_READY: 'Not ready for review',
+  SO_OLD_LABEL: 'SO OLD',
+  DONT_MERGE: 'Don\'t Merge'
+}
 
 const EDVISOR_AUTHORS = [
   'bollain',
@@ -144,8 +148,9 @@ const PR_STRUCTURE = [{
 }]
 
 class edvisorPuller {
-  constructor() {
+  constructor(showAll) {
     this.pullRequests = []
+    this.showAllLabels = showAll
   }
 
   async buildFromNothing() {
@@ -205,7 +210,15 @@ class edvisorPuller {
     let changeRequestOutput = ''
     this.pullRequests.forEach((pullRequest) => {
 
-      if(pullRequest.labels.includes(HIDDEN_LABEL)) {
+      const showThisPR = () => {
+        return (
+          pullRequest.labels.includes(LABELS.NOT_READY) && !this.showAll ||
+          pullRequest.labels.includes(LABELS.SO_OLD_LABEL) && !this.showAll ||
+          pullRequest.labels.includes(LABELS.DONT_MERGE) && !this.showAll
+        )
+      }
+
+      if (showThisPR()) {
         return
       }
 
@@ -278,8 +291,9 @@ module.exports = (robot) => {
   populateSlacktoGithubUserMap(robot)
 
   robot.respond(/prs|(pull request status)/i, async (res) => {
+    const showAll = (res.message.text.includes('all'))
     const channelId = res.envelope.room
-    const PullRequests = new edvisorPuller()
+    const PullRequests = new edvisorPuller(showAll)
     await PullRequests.buildFromNothing()
 
     return robot.adapter.client.web.chat.postMessage(channelId, `*Pull Requests: *`, {as_user: true, attachments: PullRequests.toString()})
