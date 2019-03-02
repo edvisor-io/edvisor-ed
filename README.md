@@ -14,7 +14,7 @@
 
 ## To run Ed Locally: 
 - This will run the version of Ed from your locally machine on the Edvisor Slack instance. 
-  `HUBOT_SLACK_TOKEN=xoxb-490150603344-490729904660-sNvG9BAy2wnOZAaJcgqB3AaA ./bin/hubot -a slack`
+  `HUBOT_SLACK_TOKEN=xoxb-2750833320-496976463462-Dm2G83SjTX______________ ./bin/hubot -a slack` (Same token as you would have in the env vars below...)
 
 ## Hosting Ed
 - Ed has been hosted on a free nodeJs Heroku instance. 
@@ -23,9 +23,9 @@
 
 | Variable Name | Value | Notes | 
 | -- | -- | -- | 
-| HUBOT_GITHUB_TOKEN | 0daf13edb16f3f7b945f681818b8ecb_________  |  * Not sure if this will work once I am not part of the Edvisor Project |
+| HUBOT_GITHUB_TOKEN | 0daf13edb16f3f7b945f681818b8ecb_________  |  * An OAuth token for github integrations. |
 | HUBOT_HEROKU_KEEPALIVE_URL | https://edvisor-ed.herokuapp.com/ | * The url of your heroku instance | 
-| HUBOT_SLACK_TOKEN | xoxb-2750833320-496976463462-Dm2G83SjTX______________ | The workspace specific Slack key |
+| HUBOT_SLACK_TOKEN | xoxb-2750833320-496976463462-Dm2G83SjTX______________ | Authentication token for your slack workspace |
 
 
 #### Development Notes: 
