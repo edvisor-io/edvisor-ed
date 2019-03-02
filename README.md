@@ -1,3 +1,38 @@
+# Edvisor-ed
+
+## Ed specific commands
+
+- `@ed prs` || `@ed pull request status`:
+  This will look through the last 10 editted edvisor repos and report on any PRs that do not have the labels `SO OLD`, `Not ready for review`, or `Don\'t Merge`
+- HTTP listener for the root of where ed is hosted
+  This allows your browser to save the url used to wake Ed up. 
+  * This file can be extended to catch webhooks from services to extend Ed's capabilities. 
+
+## Ed specific documentation: 
+
+## To run Ed Locally: 
+- This will run the version of Ed from your locally machine on the Edvisor Slack instance. 
+  `HUBOT_SLACK_TOKEN=xoxb-490150603344-490729904660-sNvG9BAy2wnOZAaJcgqB3AaA ./bin/hubot -a slack`
+
+## Hosting Ed
+- Ed has been hosted on a free nodeJs Heroku instance. 
+
+#### Environment Variables 
+
+| Variable Name | Value | Notes | 
+| -- | -- | -- | 
+| HUBOT_GITHUB_TOKEN | 0daf13edb16f3f7b945f681818b8ecb12fd5de8d  |  * Not sure if this will work once I am not part of the Edvisor Project |
+| HUBOT_HEROKU_KEEPALIVE_URL | https://edvisor-ed.herokuapp.com/ | * The url of your heroku instance | 
+| HUBOT_SLACK_TOKEN | xoxb-2750833320-496976463462-Dm2G83SjTXEVI8gCku7ljk5m | The workspace specific Slack key |
+
+
+#### Development Notes: 
+All Ed specific code lives in the `scripts` folder. The code is quite ugly with not much time committed to making it clean, but nothing crazy complicated is happening and should be somewhat easy to pick up and extend. 
+
+
+----
+
+
 # hordor
 
 hordor is a chat bot built on the [Hubot][hubot] framework. It was
