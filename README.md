@@ -4,9 +4,11 @@
 
 - `@ed prs` || `@ed pull request status`:
   This will look through the last 10 editted edvisor repos and report on any PRs that do not have the labels `SO OLD`, `Not ready for review`, or `Don\'t Merge`
-- HTTP listener for the root of where ed is hosted
+- HTTP Listener for the root of where ed is hosted
   This allows your browser to save the url used to wake Ed up. 
   * This file can be extended to catch webhooks from services to extend Ed's capabilities. 
+- HTTP Listener on `/pull-requests`, this endpoint is used to trigger the unprompted updates from Ed into the Development Channel. The unprompted updates are set up as Zapier "Zaps" that trigger at a set time during the day, with the action to send a GET webhook the this endpoint. 
+
 
 ## Ed specific documentation: 
 
