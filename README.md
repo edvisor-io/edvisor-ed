@@ -23,9 +23,9 @@
 
 | Variable Name | Value | Notes | 
 | -- | -- | -- | 
-| HUBOT_GITHUB_TOKEN | 0daf13edb16f3f7b945f681818b8ecb12fd5de8d  |  * Not sure if this will work once I am not part of the Edvisor Project |
+| HUBOT_GITHUB_TOKEN | 0daf13edb16f3f7b945f681818b8ecb_________  |  * Not sure if this will work once I am not part of the Edvisor Project |
 | HUBOT_HEROKU_KEEPALIVE_URL | https://edvisor-ed.herokuapp.com/ | * The url of your heroku instance | 
-| HUBOT_SLACK_TOKEN | xoxb-2750833320-496976463462-Dm2G83SjTXEVI8gCku7ljk5m | The workspace specific Slack key |
+| HUBOT_SLACK_TOKEN | xoxb-2750833320-496976463462-Dm2G83SjTX______________ | The workspace specific Slack key |
 
 
 #### Development Notes: 
