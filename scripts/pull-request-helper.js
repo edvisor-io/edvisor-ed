@@ -11,7 +11,8 @@ const EDVISOR_AUTHORS = [
   'Spencerhutch',
   'stringbeans',
   'hotaru355',
-  'austin-sa-wang'
+  'austin-sa-wang',
+  'renatorroliveira'
 ]
 
 const LABELS = {
@@ -89,7 +90,8 @@ const userMap = {
   variousauthors: '@andre',
   stringbeans: '@john',
   hotaru355: '@kenta',
-  'austin-sa-wang': '@austin'
+  'austin-sa-wang': '@austin',
+  renatorroliveira: '@Renato'
 }
 
 const client = new graphql.GraphQLClient(URL, {
