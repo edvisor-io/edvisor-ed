@@ -104,7 +104,7 @@ const client = new graphql.GraphQLClient(URL, {
 class edvisorPuller {
   constructor(showAll) {
     this.pullRequests = []
-    this.showAllLabels = showAll
+    this.showAll = showAll
   }
 
   async buildFromNothing() {
@@ -164,7 +164,9 @@ class edvisorPuller {
     let changeRequestOutput = ''
     this.pullRequests.forEach((pullRequest) => {
 
-      const showThisPR = () => {
+      const isFromEdvisorAuthor = EDVISOR_AUTHORS.includes(pullRequest.author)
+
+      const isPRNotReady = () => {
         return (
           pullRequest.labels.includes(LABELS.NOT_READY) && !this.showAll ||
           pullRequest.labels.includes(LABELS.SO_OLD_LABEL) && !this.showAll ||
@@ -172,7 +174,7 @@ class edvisorPuller {
         )
       }
 
-      if (showThisPR()) {
+      if (isPRNotReady() || !isFromEdvisorAuthor) {
         return
       }
 
