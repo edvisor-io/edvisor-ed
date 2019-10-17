@@ -4,25 +4,23 @@ dotenv.load()
 const pullRequestHelper = require('./pull-request-helper')
 
 const userMap = {
-  Spencerhutch: '@spencer',
   bollain: '@bollain',
-  brjmc: '@Brendan',
   variousauthors: '@andre',
   stringbeans: '@john',
   hotaru355: '@kenta',
   'austin-sa-wang': '@austin',
-  renatorroliveira: '@Renato'
+  renatorroliveira: '@Renato',
+  yoranl: '@Yoran Leichsenring'
 }
 
 const SLACK_TO_GITHUB = {
-  spencer: 'Spencerhutch',
   armando: 'bollain',
-  brendan: 'brjmc',
   andre: 'variousauthors',
   john: 'stringbeans',
   kenta: 'hotaru355',
   austin: 'austin-sa-wang',
-  renato: 'renatorroliveira'
+  renato: 'renatorroliveira',
+  yoran: 'yoranl'
 }
 
 const recycleReactionMatcher = (i) => {

@@ -6,13 +6,12 @@ dotenv.load()
 
 const EDVISOR_AUTHORS = [
   'bollain',
-  'brjmc',
   'variousauthors',
-  'Spencerhutch',
   'stringbeans',
   'hotaru355',
   'austin-sa-wang',
-  'renatorroliveira'
+  'renatorroliveira',
+  'yoranl'
 ]
 
 const LABELS = {
@@ -84,14 +83,13 @@ const gitNamesToSlackNames = (users) => {
 }
 
 const userMap = {
-  Spencerhutch: '@spencer',
   bollain: '@bollain',
-  brjmc: '@Brendan',
   variousauthors: '@andre',
   stringbeans: '@john',
   hotaru355: '@kenta',
   'austin-sa-wang': '@austin',
-  renatorroliveira: '@Renato'
+  renatorroliveira: '@Renato',
+  yoranl: '@Yoran Leichsenring'
 }
 
 const client = new graphql.GraphQLClient(URL, {
