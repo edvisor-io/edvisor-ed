@@ -68,7 +68,7 @@ module.exports = {
             id
             url
             pullRequests(
-              last:20
+              first:100
               states:OPEN
               orderBy: {
                 field:CREATED_AT

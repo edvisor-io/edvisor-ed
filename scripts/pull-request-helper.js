@@ -11,7 +11,8 @@ const EDVISOR_AUTHORS = [
   'hotaru355',
   'austin-sa-wang',
   'renatorroliveira',
-  'yoranl'
+  'yoranl',
+  'gabriel-schmoeller'
 ]
 
 const LABELS = {
