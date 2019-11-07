@@ -90,7 +90,8 @@ const userMap = {
   hotaru355: '@kenta',
   'austin-sa-wang': '@austin',
   renatorroliveira: '@Renato',
-  yoranl: '@Yoran Leichsenring'
+  yoranl: '@Yoran Leichsenring',
+  'gabriel-schmoeller': '@Gabriel Dias Schmoeller'
 }
 
 const client = new graphql.GraphQLClient(URL, {

@@ -20,9 +20,9 @@ const SLACK_TO_GITHUB = {
   john: 'stringbeans',
   kenta: 'hotaru355',
   austin: 'austin-sa-wang',
-  renato: 'renatorroliveira',
-  yoran: 'yoranl',
-  gabriel: 'gabriel-schmoeller'
+  Renato: 'renatorroliveira',
+  'Yoran Leichsenring': 'yoranl',
+  'Gabriel Dias Schmoeller': 'gabriel-schmoeller'
 }
 
 const recycleReactionMatcher = (i) => {
