@@ -18,6 +18,9 @@
 
 ## Hosting Ed
 - Ed has been hosted on a free nodeJs Heroku instance. 
+- To deploy Ed simply make sure you have the heroku CLI installed and you are logged in as the owner of Ed (John is the account owner at this point)
+- Make sure your heroku remote is set to: https://git.heroku.com/aqueous-tundra-40564.git
+- Run `git push heroku master` the deployment will be automatic after this.
 
 #### Environment Variables 
 

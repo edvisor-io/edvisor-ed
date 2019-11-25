@@ -4,7 +4,6 @@ dotenv.load()
 const pullRequestHelper = require('./pull-request-helper')
 
 const userMap = {
-  bollain: '@bollain',
   variousauthors: '@andre',
   stringbeans: '@john',
   hotaru355: '@kenta',
@@ -15,7 +14,6 @@ const userMap = {
 }
 
 const SLACK_TO_GITHUB = {
-  armando: 'bollain',
   andre: 'variousauthors',
   john: 'stringbeans',
   kenta: 'hotaru355',

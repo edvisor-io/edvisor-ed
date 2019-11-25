@@ -5,7 +5,6 @@ const dotenv = require('dotenv')
 dotenv.load()
 
 const EDVISOR_AUTHORS = [
-  'bollain',
   'variousauthors',
   'stringbeans',
   'hotaru355',
@@ -84,7 +83,6 @@ const gitNamesToSlackNames = (users) => {
 }
 
 const userMap = {
-  bollain: '@bollain',
   variousauthors: '@andre',
   stringbeans: '@john',
   hotaru355: '@kenta',
