@@ -15,7 +15,7 @@ const EDVISOR_AUTHORS = [
 ]
 
 const LABELS = {
-  NOT_READY: 'Not ready for review',
+  NOT_READY: 'WIP',
   SO_OLD_LABEL: 'SO OLD',
   DONT_MERGE: 'Don\'t Merge'
 }
@@ -165,10 +165,10 @@ class edvisorPuller {
       const isFromEdvisorAuthor = EDVISOR_AUTHORS.includes(pullRequest.author)
 
       const isPRNotReady = () => {
-        return (
-          pullRequest.labels.includes(LABELS.NOT_READY) && !this.showAll ||
-          pullRequest.labels.includes(LABELS.SO_OLD_LABEL) && !this.showAll ||
-          pullRequest.labels.includes(LABELS.DONT_MERGE) && !this.showAll
+        return !this.showAll && (
+          pullRequest.labels.includes(LABELS.NOT_READY) ||
+          pullRequest.labels.includes(LABELS.SO_OLD_LABEL) ||
+          pullRequest.labels.includes(LABELS.DONT_MERGE)
         )
       }
 
