@@ -9,7 +9,7 @@ const userMap = {
   hotaru355: '@kenta',
   'austin-sa-wang': '@austin',
   renatorroliveira: '@Renato',
-  yoranl: '@Yoran Leichsenring',
+  yoranl: '@yoran',
   'gabriel-schmoeller': '@Gabriel Dias Schmoeller'
 }
 

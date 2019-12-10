@@ -17,7 +17,6 @@ const EDVISOR_AUTHORS = [
 const LABELS = {
   NOT_READY: 'WIP',
   SO_OLD_LABEL: 'SO OLD',
-  DONT_MERGE: 'Don\'t Merge'
 }
 
 const URL = 'https://api.github.com/graphql'
@@ -88,7 +87,7 @@ const userMap = {
   hotaru355: '@kenta',
   'austin-sa-wang': '@austin',
   renatorroliveira: '@Renato',
-  yoranl: '@Yoran Leichsenring',
+  yoranl: '@yoran',
   'gabriel-schmoeller': '@Gabriel Dias Schmoeller'
 }
 
@@ -167,8 +166,7 @@ class edvisorPuller {
       const isPRNotReady = () => {
         return !this.showAll && (
           pullRequest.labels.includes(LABELS.NOT_READY) ||
-          pullRequest.labels.includes(LABELS.SO_OLD_LABEL) ||
-          pullRequest.labels.includes(LABELS.DONT_MERGE)
+          pullRequest.labels.includes(LABELS.SO_OLD_LABEL)
         )
       }
 
