@@ -7,7 +7,6 @@ dotenv.load()
 const EDVISOR_AUTHORS = [
   'variousauthors',
   'stringbeans',
-  'hotaru355',
   'austin-sa-wang',
   'renatorroliveira',
   'yoranl',
