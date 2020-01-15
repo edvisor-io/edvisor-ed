@@ -84,11 +84,10 @@ const gitNamesToSlackNames = (users) => {
 const userMap = {
   variousauthors: '@andre',
   stringbeans: '@john',
-  hotaru355: '@kenta',
   'austin-sa-wang': '@austin',
   renatorroliveira: '@Renato',
   yoranl: '@yoran',
-  'gabriel-schmoeller': '@Gabriel Dias Schmoeller'
+  'gabriel-schmoeller': '@Schmoeller'
 }
 
 const client = new graphql.GraphQLClient(URL, {

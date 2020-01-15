@@ -6,21 +6,19 @@ const pullRequestHelper = require('./pull-request-helper')
 const userMap = {
   variousauthors: '@andre',
   stringbeans: '@john',
-  hotaru355: '@kenta',
   'austin-sa-wang': '@austin',
   renatorroliveira: '@Renato',
   yoranl: '@yoran',
-  'gabriel-schmoeller': '@Gabriel Dias Schmoeller'
+  'gabriel-schmoeller': '@Schmoeller'
 }
 
 const SLACK_TO_GITHUB = {
   andre: 'variousauthors',
   john: 'stringbeans',
-  kenta: 'hotaru355',
   austin: 'austin-sa-wang',
   Renato: 'renatorroliveira',
-  'Yoran Leichsenring': 'yoranl',
-  'Gabriel Dias Schmoeller': 'gabriel-schmoeller'
+  yoran: 'yoranl',
+  Schmoeller: 'gabriel-schmoeller'
 }
 
 const recycleReactionMatcher = (i) => {
