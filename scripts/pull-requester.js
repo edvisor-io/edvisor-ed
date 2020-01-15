@@ -9,7 +9,8 @@ const userMap = {
   'austin-sa-wang': '@austin',
   renatorroliveira: '@Renato',
   yoranl: '@yoran',
-  'gabriel-schmoeller': '@Schmoeller'
+  'gabriel-schmoeller': '@Schmoeller',
+  AndrewHui: '@andrew',
 }
 
 const SLACK_TO_GITHUB = {
@@ -18,7 +19,8 @@ const SLACK_TO_GITHUB = {
   austin: 'austin-sa-wang',
   Renato: 'renatorroliveira',
   yoran: 'yoranl',
-  Schmoeller: 'gabriel-schmoeller'
+  Schmoeller: 'gabriel-schmoeller',
+  andrew: 'AndrewHui',
 }
 
 const recycleReactionMatcher = (i) => {
