@@ -8,15 +8,12 @@ const EDVISOR_AUTHORS = [
   'variousauthors',
   'stringbeans',
   'austin-sa-wang',
-  'renatorroliveira',
   'yoranl',
   'gabriel-schmoeller',
   'AndrewHui',
   'antonietapv',
-  'CamiloCetinaEdvisor',
   'chernandezbl',
   'dan22-book',
-  'jose-silva-edvisor',
 ]
 
 const LABELS = {
@@ -90,15 +87,12 @@ const userMap = {
   variousauthors: '@andre',
   stringbeans: '@john',
   'austin-sa-wang': '@austin',
-  renatorroliveira: '@Renato',
   yoranl: '@yoran',
   'gabriel-schmoeller': '@Schmoeller',
   AndrewHui: '@andrew',
   antonietapv: '@Toni',
-  CamiloCetinaEdvisor: '@camillo',
   chernandezbl: '@Cesar',
   'dan22-book': '@Delgadillo',
-  'jose-silva-edvisor': '@José',
 }
 
 const client = new graphql.GraphQLClient(URL, {

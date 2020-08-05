@@ -7,30 +7,24 @@ const userMap = {
   variousauthors: '@andre',
   stringbeans: '@john',
   'austin-sa-wang': '@austin',
-  renatorroliveira: '@Renato',
   yoranl: '@yoran',
   'gabriel-schmoeller': '@Schmoeller',
   AndrewHui: '@andrew',
   antonietapv: '@Toni',
-  CamiloCetinaEdvisor: '@camillo',
   chernandezbl: '@Cesar',
   'dan22-book': '@Delgadillo ',
-  'jose-silva-edvisor': '@José',
 }
 
 const SLACK_TO_GITHUB = {
   andre: 'variousauthors',
   john: 'stringbeans',
   austin: 'austin-sa-wang',
-  Renato: 'renatorroliveira',
   yoran: 'yoranl',
   Schmoeller: 'gabriel-schmoeller',
   andrew: 'AndrewHui',
   Toni: 'antonietapv',
-  camillo: 'CamiloCetinaEdvisor',
   Cesar: 'chernandezbl',
   Delgadillo: 'dan22-book',
-  'José': 'jose-silva-edvisor',
 }
 
 const recycleReactionMatcher = (i) => {
