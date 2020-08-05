@@ -1,5 +1,17 @@
 # Edvisor-ed
 
+## Infrastructure Overview
+
+Bot Hosted on Heroku
+Connected to Slack, can request PR status in Slack via `@ed` commands
+Periodic PR status update to Slack, triggered by Zapier, hitting an endpoint exposed on Heroku
+The destination channel is set in Heroku's setting/environment variables
+
+Heroku is company account under John's email.
+Zapier setup is *unknown*. (when someone finds out please update this)
+Slack integration is setup through the [Hubot Slack App](https://edvisorio.slack.com/services/BEJQM4L6L)
+The Slack API token is provided in this integration.
+
 ## Ed specific commands
 
 - `@ed prs` || `@ed pull request status`:
