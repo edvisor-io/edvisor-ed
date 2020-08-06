@@ -4,11 +4,11 @@
 
 Bot Hosted on Heroku
 Connected to Slack, can request PR status in Slack via `@ed` commands
-Periodic PR status update to Slack, triggered by Zapier, hitting an endpoint exposed on Heroku
+Periodic PR status update to Slack, triggered by Zapier's Schedule Trigger, hitting an endpoint exposed on Heroku
 The destination channel is set in Heroku's setting/environment variables
 
-Heroku is company account under John's email.
-Zapier setup is *unknown*. (when someone finds out please update this)
+Heroku is company account under John's email (john@edvisor.io)
+Zapier is company account under Fred's email (fred@edvisor.io), under the folder `Development Team`
 Slack integration is setup through the [Hubot Slack App](https://edvisorio.slack.com/services/BEJQM4L6L)
 The Slack API token is provided in this integration.
 
