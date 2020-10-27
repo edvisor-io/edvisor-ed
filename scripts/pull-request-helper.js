@@ -5,15 +5,19 @@ const dotenv = require('dotenv')
 dotenv.load()
 
 const EDVISOR_AUTHORS = [
-  'variousauthors',
-  'stringbeans',
-  'austin-sa-wang',
-  'yoranl',
-  'gabriel-schmoeller',
-  'AndrewHui',
-  'antonietapv',
-  'chernandezbl',
-  'dan22-book',
+  'variousauthors', //Andre
+  'stringbeans', //John
+  'austin-sa-wang', //Austin
+  'yoranl', //Yoran
+  'gabriel-schmoeller', //Gabriel
+  'antonietapv', //Toni
+  'chernandezbl', //Cesar
+  'dan22-book', //Daniel
+  'Mizzade', // Mirko
+  'GV79', //Giavinh
+  'oscartu2', //Oscar
+  'hotaru355', //Kenta
+  'mila-mamat' //Mila
 ]
 
 const LABELS = {
