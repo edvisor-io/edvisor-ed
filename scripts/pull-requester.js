@@ -3,33 +3,12 @@ dotenv.load()
 
 const pullRequestHelper = require('./pull-request-helper')
 
-const userMap = {
-  variousauthors: '@andre',
-  stringbeans: '@john',
-  'austin-sa-wang': '@austin',
-  yoranl: '@yoran',
-  'gabriel-schmoeller': '@Schmoeller',
-  AndrewHui: '@andrew',
-  antonietapv: '@Toni',
-  chernandezbl: '@Cesar',
-  'dan22-book': '@Delgadillo ',
-}
-
-const SLACK_TO_GITHUB = {
-  andre: 'variousauthors',
-  john: 'stringbeans',
-  austin: 'austin-sa-wang',
-  yoran: 'yoranl',
-  Schmoeller: 'gabriel-schmoeller',
-  andrew: 'AndrewHui',
-  Toni: 'antonietapv',
-  Cesar: 'chernandezbl',
-  Delgadillo: 'dan22-book',
-}
+const userMap = pullRequestHelper.userMap
+const SLACK_TO_GITHUB = Object.values(pullRequestHelper.userMap)
 
 const recycleReactionMatcher = (i) => {
   const isRecycle = (i.reaction === 'recycle')
-  const isEd = (i.item_user && i.item_user.real_name.toLowerCase() == 'ed')
+  const isEd = (i.item_user && i.item_user.real_name.toLowerCase() === 'ed')
   return (isRecycle && isEd)
 }
 

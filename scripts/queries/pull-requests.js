@@ -16,6 +16,9 @@ module.exports = {
       resource(url:"${url}"){
         ... on PullRequest {
           number
+          baseRefName
+          headRefName
+          isDraft
           repository {
             name
           }

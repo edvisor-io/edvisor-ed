@@ -4,21 +4,23 @@ const Bluebird = require('bluebird')
 const dotenv = require('dotenv')
 dotenv.load()
 
-const EDVISOR_AUTHORS = [
-  'variousauthors', //Andre
-  'stringbeans', //John
-  'austin-sa-wang', //Austin
-  'yoranl', //Yoran
-  'gabriel-schmoeller', //Gabriel
-  'antonietapv', //Toni
-  'chernandezbl', //Cesar
-  'dan22-book', //Daniel
-  'Mizzade', // Mirko
-  'GV79', //Giavinh
-  'oscartu2', //Oscar
-  'hotaru355', //Kenta
-  'mila-mamat' //Mila
-]
+const TASK_PREFIXED_BRANCH_REGEX = /^([a-z]+)[-_]?(\d+)($|_.*$)/ig
+
+const userMap = {
+  'variousauthors': 'andre', //Andre
+  'stringbeans': 'john', //John
+  'austin-sa-wang': 'austin', //Austin
+  'yoranl': 'yoran', //Yoran
+  'gabriel-schmoeller': 'Gabriel', //Gabriel
+  'chernandezbl': 'Cesar', //Cesar
+  'dan22-book': 'Daniel Delgadillo', //Daniel
+  'IgorHorta': 'Igor Correa', //Igor
+  'Mizzade': 'Mirko Lauff', // Mirko
+  'GV79': 'Giavinh Lam', //Giavinh
+  'oscartu2': 'Oscar Tu', //Oscar
+  'hotaru355': 'kenta', //Kenta
+  'mila-mamat': 'Mila mamat' //Mila
+}
 
 const LABELS = {
   NOT_READY: 'WIP',
@@ -61,9 +63,16 @@ const prStructByUrL = async (url) => {
     }
   })
 
+  const prefixTaskCode = pullRequest.headRefName.match(TASK_PREFIXED_BRANCH_REGEX)
+    ? pullRequest.headRefName.replaceAll(TASK_PREFIXED_BRANCH_REGEX, '$1-$2')
+    : ''
 
   return {
     link: url,
+    baseRefName: pullRequest.baseRefName,
+    headRefName: pullRequest.headRefName,
+    prefixTaskCode,
+    isDraft: pullRequest.isDraft,
     labels,
     repo: pullRequest.repository.name,
     prNumber: pullRequest.number,
@@ -73,30 +82,6 @@ const prStructByUrL = async (url) => {
     changeRequests,
     lastCommitTimestamp: lastCommit.committedDate
   }
-}
-
-const gitNamesToSlackNames = (users) => {
-  let output = ''
-  for(var ix = 0 ; ix < users.length - 1; ix++) {
-    current = users[ix]
-    output += `${userMap[current]} || `
-  }
-
-  output += userMap[users[users.length-1]]
-
-  return output
-}
-
-const userMap = {
-  variousauthors: '@andre',
-  stringbeans: '@john',
-  'austin-sa-wang': '@austin',
-  yoranl: '@yoran',
-  'gabriel-schmoeller': '@Schmoeller',
-  AndrewHui: '@andrew',
-  antonietapv: '@Toni',
-  chernandezbl: '@Cesar',
-  'dan22-book': '@Delgadillo',
 }
 
 const client = new graphql.GraphQLClient(URL, {
@@ -164,88 +149,119 @@ class edvisorPuller {
   }
 
   toString() {
-    let approval = ''
-    let eyes = ''
-    let changeRequestOutput = ''
-    this.pullRequests.forEach((pullRequest) => {
+    const isEmpty = (anyWithLength) => anyWithLength.length === 0
+    const isNotEmpty = (anyWithLength) => !isEmpty(anyWithLength)
+    const isRejected = (pullRequest) => !isEmpty(pullRequest.changeRequests)
+    const isApprovalNeeded = (pullRequest) => !isRejected(pullRequest) && pullRequest.approvals < 2
+    const isApproved = (pullRequest) => !isRejected(pullRequest) && pullRequest.approvals >= 2
 
-      const isFromEdvisorAuthor = EDVISOR_AUTHORS.includes(pullRequest.author)
+    const isPrReadyToReview = (pullRequest) => {
+      return this.showAll
+        || (!pullRequest.isDraft
+          && !pullRequest.labels.includes(LABELS.NOT_READY)
+          && !pullRequest.labels.includes(LABELS.SO_OLD_LABEL))
+    }
 
-      const isPRNotReady = () => {
-        return !this.showAll && (
-          pullRequest.labels.includes(LABELS.NOT_READY) ||
-          pullRequest.labels.includes(LABELS.SO_OLD_LABEL)
-        )
-      }
-
-      if (isPRNotReady() || !isFromEdvisorAuthor) {
-        return
-      }
-
-      const commentsSeenfrom = []
-
-      pullRequest.changeRequests.forEach((changeRequest) => {
-        commentsSeenfrom.push(changeRequest.author)
-      })
-      pullRequest.approvals.forEach((approval) => {
-        commentsSeenfrom.push(approval.author)
-      })
-
-      const filteredChangesRequested = pullRequest.changeRequests.filter((changeRequest) => {
-        const previousApprovals = pullRequest.approvals.filter((item) => (item.author === changeRequest.author && item.timestamp > changeRequest.timestamp))
-        if(previousApprovals.length > 0) {
-          return false
+    const groupByTaskCode = (pullRequestList) => {
+      return pullRequestList.reduce(function (groups, pr) {
+        if (groups[pr.prefixTaskCode] === undefined) {
+          groups[pr.prefixTaskCode] = [];
         }
-        return true
+        groups[pr.prefixTaskCode].push(pr);
+
+        return groups;
+      }, {});
+    }
+
+    const gitToSlackName = (gitUserName) => {
+      return `@${userMap[gitUserName]}`
+    }
+
+    const gitToSlackNamesList = (gitUserNames) => {
+      return gitUserNames
+        .map((gitName) => gitToSlackName(gitName))
+        .join(', ')
+    }
+
+    const buildPrLink = (pullRequest) => {
+      return `<${pullRequest.link}|${pullRequest.repo} #${pullRequest.prNumber} >`
+    }
+
+    const buildPrAdditionalInfoText = (pullRequest) => {
+      let reviews = pullRequest.approvals
+      let action = 'Approved'
+      if (isRejected(pullRequest)) {
+        reviews = pullRequest.changeRequests
+        action = 'Requests'
+      }
+      const slackAuthors = gitToSlackNamesList(reviews.map((review) => review.author))
+      return isNotEmpty(slackAuthors) ? ` (${action} by: ${slackAuthors})` : ''
+    }
+
+    const buildPrLine = (pullRequest) => {
+      const prLink = buildPrLink(pullRequest)
+      const additionalInfo = buildPrAdditionalInfoText(pullRequest)
+      return `    • ${prLink} ${gitToSlackName(pullRequest.author)}${additionalInfo}`
+    }
+
+    const buildTaskCodeLine = (taskCode) => {
+      taskCode = isEmpty(taskCode) ? 'Others' : taskCode
+      return `• *${taskCode}:*`
+    }
+
+    const buildPrsTextList = (prsGroupedByTask) => {
+      const lines = []
+      const taskCodes = Object.keys(prsGroupedByTask).sort().reverse()
+      taskCodes.forEach((taskCode) => {
+        lines.push(buildTaskCodeLine(taskCode))
+        prsGroupedByTask[taskCode]
+          .sort((a, b) => {
+            if (a.author < b.author) return -1
+            else if (a.author > b.author) return 1
+            return 0
+          })
+          .forEach((pullRequests) => {
+          lines.push(buildPrLine(pullRequests))
+        })
       })
 
-      const prLink = `- <${pullRequest.link}|${pullRequest.repo} #${pullRequest.prNumber} > `
+      return lines.join('\n')
+    }
 
-      if (filteredChangesRequested.length > 0) {
-        changeRequestOutput += `${prLink} ${userMap[pullRequest.author]}\n`
-        return
-      }
+    const prsReadyToReview = this.pullRequests.filter(isPrReadyToReview)
 
-      if (pullRequest.approvals.length >= 2) {
-        const isOpen = pullRequest.isOpen
-        const lineItem = `${prLink} ${userMap[pullRequest.author]}`
-        approval += `${(isOpen ? '' : '~')}${lineItem}${(isOpen ? '' : '~')}\n`
-      }
+    const approved = groupByTaskCode(prsReadyToReview.filter(isApproved))
+    const eyesNeeded = groupByTaskCode(prsReadyToReview.filter(isApprovalNeeded))
+    const changeRequest = groupByTaskCode(prsReadyToReview.filter(isRejected))
 
-      if (pullRequest.approvals.length < 2) {
-        const usersNeeded = EDVISOR_AUTHORS.filter(x => (x !== pullRequest.author) && !commentsSeenfrom.includes(x) && (x !== 'stringbeans'))
-        eyes += `${prLink} ${gitNamesToSlackNames(usersNeeded)}\n`
-      }
-    })
+    const attachments = []
 
-    let attachments = []
-
-    if (approval !== '') {
+    if (isNotEmpty(approved)) {
       attachments.push({
         color: 'good',
-        text: `*Approved: * \n${approval}`
+        text: `*Approved: * \n${buildPrsTextList(approved)}`
       })
     }
 
-    if (eyes !== '') {
+    if (isNotEmpty(eyesNeeded)) {
       attachments.push({
         color: 'warning',
-        text: `*Eyes Needed: * \n${eyes}`
+        text: `*Eyes Needed: * \n${buildPrsTextList(eyesNeeded)}`
       })
     }
 
-    if (changeRequestOutput !== '') {
+    if (isNotEmpty(changeRequest)) {
       attachments.push({
         color: 'danger',
-        text: `*Change Requests: * \n${changeRequestOutput}`
+        text: `*Change Requests: * \n${buildPrsTextList(changeRequest)}`
       })
     }
 
     return attachments
-
   }
 }
 
+module.exports.userMap = userMap
 module.exports.edvisorPuller = edvisorPuller
 module.exports.sendPullRequestsToChannel = async (robot, channelId, showAll) => {
   const PullRequests = new edvisorPuller(showAll)
