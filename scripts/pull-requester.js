@@ -3,8 +3,16 @@ dotenv.load()
 
 const pullRequestHelper = require('./pull-request-helper')
 
-const userMap = pullRequestHelper.userMap
-const SLACK_TO_GITHUB = Object.values(pullRequestHelper.userMap)
+function swapKeyValue(obj) {
+  var ret = {};
+  for(let key in obj){
+    ret[obj[key]] = key;
+  }
+  return ret;
+}
+
+const userMap = {...pullRequestHelper.userMap}
+const SLACK_TO_GITHUB = swapKeyValue(pullRequestHelper.userMap)
 
 const recycleReactionMatcher = (i) => {
   const isRecycle = (i.reaction === 'recycle')
