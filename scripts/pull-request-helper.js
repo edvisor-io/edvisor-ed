@@ -4,7 +4,7 @@ const Bluebird = require('bluebird')
 const dotenv = require('dotenv')
 dotenv.load()
 
-const TASK_PREFIXED_BRANCH_REGEX = /^([a-z]+)[-_]?(\d+)($|_.*$)/ig
+const TASK_PREFIXED_BRANCH_REGEX = /^([a-z]+)[-_]?(\d+)($|[-_].*$)/ig
 
 const userMap = {
   'variousauthors': 'andre', //Andre
@@ -38,7 +38,6 @@ const prStructByUrL = async (url) => {
     labels = labels.concat(pullRequest.labels.edges.map((e) => e.node.name))
   }
 
-
   const approvals = []
   const changeRequests = []
 
@@ -64,7 +63,7 @@ const prStructByUrL = async (url) => {
   })
 
   const prefixTaskCode = pullRequest.headRefName.match(TASK_PREFIXED_BRANCH_REGEX)
-    ? pullRequest.headRefName.replaceAll(TASK_PREFIXED_BRANCH_REGEX, '$1')
+    ? pullRequest.headRefName.replace(TASK_PREFIXED_BRANCH_REGEX, '$1')
     : ''
 
   return {
@@ -174,11 +173,13 @@ class edvisorPuller {
     }
 
     const gitToSlackName = (gitUserName) => {
-      return `@${userMap[gitUserName]}`
+      const username = userMap[gitUserName] === undefined ? gitUserName : userMap[gitUserName]
+      return `@${username}`
     }
 
     const gitToSlackNamesList = (gitUserNames) => {
       return gitUserNames
+        .filter((name, index) => gitUserNames.indexOf(name) === index)
         .map((gitName) => gitToSlackName(gitName))
         .join(', ')
     }
@@ -195,13 +196,13 @@ class edvisorPuller {
         action = 'Requests'
       }
       const slackAuthors = gitToSlackNamesList(reviews.map((review) => review.author))
-      return isNotEmpty(slackAuthors) ? ` (${action} by: ${slackAuthors})` : ''
+      return isNotEmpty(slackAuthors) ? ` (${action} by: ${slackAuthors})` : ' (Not reviewed yet!)'
     }
 
     const buildPrLine = (pullRequest) => {
       const prLink = buildPrLink(pullRequest)
       const additionalInfo = buildPrAdditionalInfoText(pullRequest)
-      return `    • ${prLink} ${gitToSlackName(pullRequest.author)}${additionalInfo}`
+      return `    • ${prLink} *${gitToSlackName(pullRequest.author)}*${additionalInfo}`
     }
 
     const buildTaskCodeLine = (taskCode) => {
