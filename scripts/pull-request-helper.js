@@ -64,7 +64,7 @@ const prStructByUrL = async (url) => {
   })
 
   const prefixTaskCode = pullRequest.headRefName.match(TASK_PREFIXED_BRANCH_REGEX)
-    ? pullRequest.headRefName.replaceAll(TASK_PREFIXED_BRANCH_REGEX, '$1-$2')
+    ? pullRequest.headRefName.replaceAll(TASK_PREFIXED_BRANCH_REGEX, '$1')
     : ''
 
   return {
