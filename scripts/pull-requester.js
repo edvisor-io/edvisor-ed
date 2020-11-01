@@ -56,9 +56,12 @@ module.exports = (robot) => {
   populateSlacktoGithubUserMap(robot)
 
   robot.respond(/prs|(pull request status)/i, async (res) => {
-    const showAll = (res.message.text.includes('all'))
+    const args = res.message.text.replace(/.*?(prs|(pull request status))/i, '')
+      .trim()
+      .split(' ')
+      .filter(value => value !== '')
     const channelId = res.envelope.room
-    return pullRequestHelper.sendPullRequestsToChannel(robot, channelId, showAll)
+    return pullRequestHelper.sendPullRequestsToChannel(robot, channelId, args)
   })
 
   robot.listen(recycleReactionMatcher, (res) => {

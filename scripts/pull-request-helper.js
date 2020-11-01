@@ -40,27 +40,40 @@ const prStructByUrL = async (url) => {
 
   const approvals = []
   const changeRequests = []
+  const dismissed = []
 
   const commits = pullRequest.commits.edges
   const lastCommit = commits[0].node.commit
 
-  pullRequest.reviews.edges.forEach((node) => {
-    const review = node.node
-    switch(review.state) {
-      case 'APPROVED':
-        approvals.push({
-          author: review.author.login,
-          timestamp: review.submittedAt
-        })
-        break;
-      case 'CHANGES_REQUESTED':
-        changeRequests.push({
-          author: review.author.login,
-          timestamp: review.submittedAt,
-        })
-        break
-    }
-  })
+  pullRequest.reviews.nodes
+    .sort((a, b) => {
+      if (new Date(a.submittedAt) < new Date(b.submittedAt)) return 1
+      else if (new Date(a.submittedAt) > new Date(b.submittedAt)) return -1
+      return 0
+    })
+    .reduce((unique, item) => unique.find((uItem) => uItem.author.login === item.author.login) ? unique : [...unique, item], [])
+    .forEach((review) => {
+      switch(review.state) {
+        case 'APPROVED':
+          approvals.push({
+            author: review.author.login,
+            timestamp: review.submittedAt
+          })
+          break;
+        case 'CHANGES_REQUESTED':
+          changeRequests.push({
+            author: review.author.login,
+            timestamp: review.submittedAt,
+          })
+          break
+        case 'DISMISSED':
+          dismissed.push({
+            author: review.author.login,
+            timestamp: review.submittedAt,
+          })
+          break
+      }
+    })
 
   const prefixTaskCode = pullRequest.headRefName.match(TASK_PREFIXED_BRANCH_REGEX)
     ? pullRequest.headRefName.replace(TASK_PREFIXED_BRANCH_REGEX, '$1')
@@ -79,6 +92,7 @@ const prStructByUrL = async (url) => {
     isOpen: !pullRequest.closed,
     approvals,
     changeRequests,
+    dismissed,
     lastCommitTimestamp: lastCommit.committedDate
   }
 }
@@ -91,9 +105,9 @@ const client = new graphql.GraphQLClient(URL, {
 })
 
 class edvisorPuller {
-  constructor(showAll) {
+  constructor(args) {
     this.pullRequests = []
-    this.showAll = showAll
+    this.args = args.map((arg) => arg.toLocaleLowerCase())
   }
 
   async buildFromNothing() {
@@ -150,12 +164,15 @@ class edvisorPuller {
   toString() {
     const isEmpty = (anyWithLength) => anyWithLength.length === 0
     const isNotEmpty = (anyWithLength) => !isEmpty(anyWithLength)
-    const isRejected = (pullRequest) => !isEmpty(pullRequest.changeRequests)
-    const isApprovalNeeded = (pullRequest) => !isRejected(pullRequest) && pullRequest.approvals < 2
-    const isApproved = (pullRequest) => !isRejected(pullRequest) && pullRequest.approvals >= 2
+    const getTaskCodeLabel = (taskCode) => isEmpty(taskCode) ? 'Others' : taskCode
+    const isRequestedTaskCode = (taskCode) => isEmpty(this.args) || this.args.includes(getTaskCodeLabel(taskCode).toLowerCase())
+    const isShowAllRequested = () => isNotEmpty(this.args) && this.args[0] === 'all'
+    const isRejected = (pullRequest) => isNotEmpty(pullRequest.changeRequests)
+    const isApprovalNeeded = (pullRequest) => !isRejected(pullRequest) && pullRequest.approvals.length < 2
+    const isApproved = (pullRequest) => !isRejected(pullRequest) && pullRequest.approvals.length >= 2
 
     const isPrReadyToReview = (pullRequest) => {
-      return this.showAll
+      return isShowAllRequested()
         || (!pullRequest.isDraft
           && !pullRequest.labels.includes(LABELS.NOT_READY)
           && !pullRequest.labels.includes(LABELS.SO_OLD_LABEL))
@@ -188,15 +205,19 @@ class edvisorPuller {
       return `<${pullRequest.link}|${pullRequest.repo} #${pullRequest.prNumber} >`
     }
 
-    const buildPrAdditionalInfoText = (pullRequest) => {
-      let reviews = pullRequest.approvals
-      let action = 'Approved'
-      if (isRejected(pullRequest)) {
-        reviews = pullRequest.changeRequests
-        action = 'Requests'
-      }
+    const buildActionDescription = (actionLabel, reviews) => {
       const slackAuthors = gitToSlackNamesList(reviews.map((review) => review.author))
-      return isNotEmpty(slackAuthors) ? ` (${action} by: ${slackAuthors})` : ' (Not reviewed yet!)'
+      return isNotEmpty(slackAuthors) ? `*${actionLabel}:* ${slackAuthors}` : ''
+    }
+
+    const buildPrAdditionalInfoText = (pullRequest) => {
+      const actions = [
+        buildActionDescription('Dismissed', pullRequest.dismissed),
+        buildActionDescription('Requests by', pullRequest.changeRequests),
+        buildActionDescription('Approvals by', pullRequest.approvals)
+      ].filter(isNotEmpty)
+
+      return isNotEmpty(actions) ? ` (${actions.join('; ')})` : ' (No reviews!)'
     }
 
     const buildPrLine = (pullRequest) => {
@@ -206,8 +227,7 @@ class edvisorPuller {
     }
 
     const buildTaskCodeLine = (taskCode) => {
-      taskCode = isEmpty(taskCode) ? 'Others' : taskCode
-      return `• *${taskCode}:*`
+      return `• *${getTaskCodeLabel(taskCode)}:*`
     }
 
     const buildPrsTextList = (prsGroupedByTask) => {
@@ -229,7 +249,8 @@ class edvisorPuller {
       return lines.join('\n')
     }
 
-    const prsReadyToReview = this.pullRequests.filter(isPrReadyToReview)
+    const prsReadyToReview = this.pullRequests
+      .filter((pr) => isPrReadyToReview(pr) && isRequestedTaskCode(pr.prefixTaskCode))
 
     const approved = groupByTaskCode(prsReadyToReview.filter(isApproved))
     const eyesNeeded = groupByTaskCode(prsReadyToReview.filter(isApprovalNeeded))
@@ -264,8 +285,8 @@ class edvisorPuller {
 
 module.exports.userMap = userMap
 module.exports.edvisorPuller = edvisorPuller
-module.exports.sendPullRequestsToChannel = async (robot, channelId, showAll) => {
-  const PullRequests = new edvisorPuller(showAll)
+module.exports.sendPullRequestsToChannel = async (robot, channelId, args) => {
+  const PullRequests = new edvisorPuller(args)
   await PullRequests.buildFromNothing()
 
   return robot.adapter.client.web.chat.postMessage(channelId, `*Pull Requests: *`, {as_user: true, attachments: PullRequests.toString()})
