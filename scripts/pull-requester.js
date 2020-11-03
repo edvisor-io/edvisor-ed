@@ -3,33 +3,20 @@ dotenv.load()
 
 const pullRequestHelper = require('./pull-request-helper')
 
-const userMap = {
-  variousauthors: '@andre',
-  stringbeans: '@john',
-  'austin-sa-wang': '@austin',
-  yoranl: '@yoran',
-  'gabriel-schmoeller': '@Schmoeller',
-  AndrewHui: '@andrew',
-  antonietapv: '@Toni',
-  chernandezbl: '@Cesar',
-  'dan22-book': '@Delgadillo ',
+function swapKeyValue(obj) {
+  var ret = {};
+  for(let key in obj){
+    ret[obj[key]] = key;
+  }
+  return ret;
 }
 
-const SLACK_TO_GITHUB = {
-  andre: 'variousauthors',
-  john: 'stringbeans',
-  austin: 'austin-sa-wang',
-  yoran: 'yoranl',
-  Schmoeller: 'gabriel-schmoeller',
-  andrew: 'AndrewHui',
-  Toni: 'antonietapv',
-  Cesar: 'chernandezbl',
-  Delgadillo: 'dan22-book',
-}
+const userMap = {...pullRequestHelper.userMap}
+const SLACK_TO_GITHUB = swapKeyValue(pullRequestHelper.userMap)
 
 const recycleReactionMatcher = (i) => {
   const isRecycle = (i.reaction === 'recycle')
-  const isEd = (i.item_user && i.item_user.real_name.toLowerCase() == 'ed')
+  const isEd = (i.item_user && i.item_user.real_name.toLowerCase() === 'ed')
   return (isRecycle && isEd)
 }
 
@@ -69,9 +56,12 @@ module.exports = (robot) => {
   populateSlacktoGithubUserMap(robot)
 
   robot.respond(/prs|(pull request status)/i, async (res) => {
-    const showAll = (res.message.text.includes('all'))
+    const args = res.message.text.replace(/.*?(prs|(pull request status))/i, '')
+      .trim()
+      .split(' ')
+      .filter(value => value !== '')
     const channelId = res.envelope.room
-    return pullRequestHelper.sendPullRequestsToChannel(robot, channelId, showAll)
+    return pullRequestHelper.sendPullRequestsToChannel(robot, channelId, args)
   })
 
   robot.listen(recycleReactionMatcher, (res) => {

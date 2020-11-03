@@ -16,6 +16,9 @@ module.exports = {
       resource(url:"${url}"){
         ... on PullRequest {
           number
+          baseRefName
+          headRefName
+          isDraft
           repository {
             name
           }
@@ -30,14 +33,12 @@ module.exports = {
               }
             }
           }
-          reviews(first:20) {
-            edges {
-              node {
-                state
-                submittedAt
-                author {
-                  login
-                }
+          reviews(last:50, states: [APPROVED, CHANGES_REQUESTED, DISMISSED]) {
+            nodes {
+              state
+              submittedAt
+              author {
+                login
               }
             }
           }
