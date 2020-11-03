@@ -14,7 +14,7 @@ module.exports = (robot) => {
 
   robot.router.get('/pull-requests', async (req, res) => {
     // console.log('Pull: ', pullRequester.bind(robot)
-    await pullRequestHelper.sendPullRequestsToChannel(robot, process.env.PERIODIC_PRS_SLACK_DESTINATION_CHANNEL_ID, false)
+    await pullRequestHelper.sendPullRequestsToChannel(robot, process.env.PERIODIC_PRS_SLACK_DESTINATION_CHANNEL_ID, [])
     res.send()
   })
 }

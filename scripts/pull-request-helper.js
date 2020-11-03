@@ -107,7 +107,7 @@ const client = new graphql.GraphQLClient(URL, {
 class edvisorPuller {
   constructor(args) {
     this.pullRequests = []
-    this.args = args.map((arg) => arg.toLocaleLowerCase())
+    this.args = (args) ? args.map((arg) => arg.toLocaleLowerCase()) : []
   }
 
   async buildFromNothing() {
@@ -173,7 +173,8 @@ class edvisorPuller {
 
     const isPrReadyToReview = (pullRequest) => {
       return isShowAllRequested()
-        || (!pullRequest.isDraft
+        || (pullRequest.isOpen
+          && !pullRequest.isDraft
           && !pullRequest.labels.includes(LABELS.NOT_READY)
           && !pullRequest.labels.includes(LABELS.SO_OLD_LABEL))
     }
