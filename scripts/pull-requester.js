@@ -79,7 +79,7 @@ module.exports = (robot) => {
         if (i && i.messages[0]) {
           const message = i.messages[0]
 
-          const c = new pullRequestHelper.edvisorPuller()
+          const c = new pullRequestHelper.edvisorPuller([])
           await c.buildFromAttachments(message.attachments)
 
           robot.adapter.client.web.chat.update(ts, channelId, '*Pull Requests: *', {as_user: true, attachments: c.toString()})
